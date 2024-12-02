@@ -71,6 +71,9 @@
                         <button id="exportBtn" class="btn-export">
                             <i class="fas fa-download"></i>
                         </button>
+                        <button class="btn-clear-all" onclick="yogaManager.clearAllData()">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -92,5 +95,17 @@
         </div>
     </div>
     <script src="script.js"></script>
+    <!-- 在 app-container 的末尾添加模态框 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>确认删除</h2>
+            <p>请输入"周开妍"以确认删除所有数据</p>
+            <input type="text" id="confirmInput" placeholder="请输入确认文字">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="yogaManager.closeModal()">取消</button>
+                <button class="btn-confirm" onclick="yogaManager.confirmDelete()">确认删除</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

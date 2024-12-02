@@ -627,6 +627,48 @@ class YogaCourseManager {
         ];
         return colors[index % colors.length];
     }
+
+    // 修改 clearAllData 方法
+    clearAllData() {
+        // 显示模态框
+        const modal = document.getElementById('confirmModal');
+        modal.style.display = 'flex';
+        
+        // 清空并聚焦输入框
+        const input = document.getElementById('confirmInput');
+        input.value = '';
+        input.focus();
+    }
+
+    // 添加关闭模态框方法
+    closeModal() {
+        const modal = document.getElementById('confirmModal');
+        modal.style.display = 'none';
+    }
+
+    // 添加确认删除方法
+    confirmDelete() {
+        const input = document.getElementById('confirmInput');
+        const confirmName = input.value.trim();
+        
+        if (confirmName === '周开妍') {
+            // 清除数据
+            this.courses = [];
+            localStorage.removeItem('yogaCourses');
+            
+            // 更新界面
+            this.renderCourses();
+            this.updateTotalHours();
+            this.updateLocationStats();
+            this.initializeMonthSelector();
+            
+            // 关闭模态框并显示提示
+            this.closeModal();
+            this.showNotification('所有数据已清除');
+        } else {
+            this.showNotification('输入错误，删除取消');
+        }
+    }
 }
 
 // 等待 DOM 加载完成后再初始化
