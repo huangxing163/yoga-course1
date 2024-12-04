@@ -168,14 +168,37 @@ class YogaCourseManager {
         });
     }
 
-    deleteCourse(id) {
-        this.courses = this.courses.filter(course => course.id !== id);
-        this.saveCourses();
-        this.renderCourses();
-        this.updateLocationStats();
-        this.updateTotalHours();
-        this.showNotification('课程删除成功！');
-        this.updateMonthlyChart();
+    deleteCourse(courseId) {
+        Swal.fire({
+            title: '删除确认',
+            text: '确定要删除这条记录吗？',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '删除',
+            cancelButtonText: '取消',
+            customClass: {
+                popup: 'swal-custom-popup',
+                title: 'swal-custom-title',
+                content: 'swal-custom-content',
+                confirmButton: 'swal-custom-confirm',
+                cancelButton: 'swal-custom-cancel'
+            },
+            buttonsStyling: false,
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const index = this.courses.findIndex(course => course.id === courseId);
+                if (index !== -1) {
+                    this.courses.splice(index, 1);
+                    this.saveCourses();
+                    this.renderCourses();
+                    this.updateLocationStats();
+                    this.updateTotalHours();
+                    this.updateMonthlyChart();
+                    this.showNotification('课程删除成功！');
+                }
+            }
+        });
     }
 
     saveCourses() {

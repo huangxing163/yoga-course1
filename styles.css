@@ -587,4 +587,56 @@ body {
 
 .btn-confirm:hover {
     background: #ff3543;
+}
+
+/* SweetAlert2 自定义样式 */
+.swal-custom-popup {
+    border-radius: 15px !important;
+    padding: 1.5em !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.swal-custom-title {
+    color: #333333 !important;
+    font-size: 1.5em !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5em !important;
+}
+
+.swal-custom-content {
+    color: #666666 !important;
+    font-size: 1.1em !important;
+}
+
+.swal-custom-confirm {
+    background: #dc3545 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    font-size: 1em !important;
+    border: none !important;
+    margin: 0.5em !important;
+    transition: all 0.3s ease !important;
+}
+
+.swal-custom-cancel {
+    background: #f8f9fa !important;
+    color: #666666 !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+    font-size: 1em !important;
+    border: 1px solid #dee2e6 !important;
+    margin: 0.5em !important;
+    transition: all 0.3s ease !important;
+}
+
+.swal-custom-confirm:hover {
+    background: #c82333 !important;
+    transform: translateY(-1px) !important;
+}
+
+.swal-custom-cancel:hover {
+    background: #e2e6ea !important;
+    transform: translateY(-1px) !important;
 } 
