@@ -13,6 +13,7 @@ class YogaCourseManager {
         setTimeout(() => {
             this.initializeCharts();
         }, 100);
+        this.initializeCalendar();
     }
 
     initializeElements() {
@@ -123,7 +124,7 @@ class YogaCourseManager {
         const selectedMonth = this.monthSelector.value;
         const [year, month] = selectedMonth.split('-').map(Number);
         
-        // 筛选当前选中月份的课程
+        // 选当前选中月份的课程
         const monthCourses = this.courses
             .filter(course => {
                 const courseDate = new Date(course.date);
@@ -191,10 +192,17 @@ class YogaCourseManager {
                 if (index !== -1) {
                     this.courses.splice(index, 1);
                     this.saveCourses();
+                    
+                    // 更新所有相关显示
                     this.renderCourses();
                     this.updateLocationStats();
                     this.updateTotalHours();
                     this.updateMonthlyChart();
+                    
+                    // 更新课表相关显示
+                    this.renderCalendar();
+                    this.updateScheduleDisplay();
+                    
                     this.showNotification('课程删除成功！');
                 }
             }
@@ -262,7 +270,7 @@ class YogaCourseManager {
             <option value="${month}">${month.replace('-', '年')}月</option>
         `).join('');
 
-        // 修改月份变化监听器
+        // 改月份变化监听器
         this.monthSelector.addEventListener('change', () => {
             this.updateLocationStats();
             this.updateTotalHours();
@@ -691,6 +699,246 @@ class YogaCourseManager {
         } else {
             this.showNotification('输入错误，删除取消');
         }
+    }
+
+    initializeCalendar() {
+        this.currentDate = new Date();
+        this.selectedDate = null;
+        
+        document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
+        document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
+        document.getElementById('btnAddSchedule').addEventListener('click', () => this.openScheduleModal());
+        document.getElementById('scheduleForm').addEventListener('submit', (e) => this.handleScheduleSubmit(e));
+        
+        this.renderCalendar();
+    }
+
+    renderCalendar() {
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
+        
+        // 更新月份显示
+        document.getElementById('currentMonth').textContent = 
+            `${year}年${month + 1}月`;
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDay = firstDay.getDay();
+        
+        const calendarDays = document.getElementById('calendarDays');
+        calendarDays.innerHTML = '';
+        
+        // 添加空白天数
+        for (let i = 0; i < startingDay; i++) {
+            calendarDays.appendChild(this.createDayElement(''));
+        }
+        
+        // 添加月份天数
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            const dayElement = this.createDayElement(day, date);
+            calendarDays.appendChild(dayElement);
+        }
+        
+        this.updateScheduleDisplay();
+    }
+
+    createDayElement(day, date) {
+        const div = document.createElement('div');
+        div.className = 'calendar-day';
+        
+        if (day) {
+            div.textContent = day;
+            
+            // 检查是否是今天
+            const today = new Date();
+            if (date.toDateString() === today.toDateString()) {
+                div.classList.add('today');
+            }
+            
+            // 检查是否有课程
+            const schedules = this.getSchedulesForDate(date);
+            if (schedules.length > 0) {
+                div.classList.add('has-schedule');
+                const count = document.createElement('span');
+                count.className = 'schedule-count';
+                count.textContent = schedules.length;
+                div.appendChild(count);
+            }
+            
+            div.addEventListener('click', () => this.selectDate(date));
+        }
+        
+        return div;
+    }
+
+    changeMonth(delta) {
+        this.currentDate.setMonth(this.currentDate.getMonth() + delta);
+        this.renderCalendar();
+    }
+
+    selectDate(date) {
+        this.selectedDate = date;
+        this.renderCalendar();
+        this.updateScheduleDisplay();
+        
+        // 更新选中状态
+        document.querySelectorAll('.calendar-day').forEach(day => {
+            day.classList.remove('selected');
+            if (day.textContent && new Date(this.selectedDate).getDate() === parseInt(day.textContent)) {
+                day.classList.add('selected');
+            }
+        });
+    }
+
+    getSchedulesForDate(date) {
+        return this.courses.filter(course => {
+            const courseDate = new Date(course.date);
+            return courseDate.toDateString() === date.toDateString();
+        });
+    }
+
+    updateScheduleDisplay() {
+        const scheduleList = document.querySelector('.schedule-list');
+        const scheduleDate = document.querySelector('.schedule-date');
+        
+        if (!this.selectedDate) {
+            scheduleList.innerHTML = '<div class="no-data">请选择日期查看课程安排</div>';
+            scheduleDate.textContent = '';
+            return;
+        }
+        
+        scheduleDate.textContent = this.selectedDate.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long'
+        });
+        
+        const schedules = this.getSchedulesForDate(this.selectedDate);
+        if (schedules.length === 0) {
+            scheduleList.innerHTML = '<div class="no-data">当天暂无课程安排</div>';
+            return;
+        }
+        
+        scheduleList.innerHTML = schedules
+            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+            .map(schedule => `
+                <div class="schedule-item">
+                    <div class="schedule-time">
+                        <i class="far fa-clock"></i> ${schedule.startTime} - ${schedule.endTime}
+                    </div>
+                    <div class="schedule-course">
+                        <i class="fas fa-book"></i> ${schedule.courseName}
+                    </div>
+                    <div class="schedule-location">
+                        <i class="fas fa-map-marker-alt"></i> ${schedule.location}
+                    </div>
+                    ${schedule.remarks ? `
+                    <div class="schedule-remarks">
+                        <i class="fas fa-comment"></i> ${schedule.remarks}
+                    </div>
+                    ` : ''}
+                    <div class="schedule-actions">
+                        <button class="btn-delete" onclick="yogaManager.deleteCourse(${schedule.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    openScheduleModal() {
+        if (!this.selectedDate) {
+            this.showNotification('请先选择日期');
+            return;
+        }
+        
+        // 检查是否是过去的日期
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // 设置时间为当天开始
+        
+        const selectedDate = new Date(this.selectedDate);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            this.showNotification('无法为过去的日期添加预约');
+            return;
+        }
+        
+        const modal = document.getElementById('scheduleModal');
+        modal.style.display = 'flex';
+    }
+
+    closeScheduleModal() {
+        const modal = document.getElementById('scheduleModal');
+        modal.style.display = 'none';
+        document.getElementById('scheduleForm').reset();
+    }
+
+    handleScheduleSubmit(event) {
+        event.preventDefault();
+        
+        const startTime = document.getElementById('scheduleStartTime').value;
+        const endTime = document.getElementById('scheduleEndTime').value;
+        
+        // 检查时间是否合法
+        const now = new Date();
+        const selectedDate = new Date(this.selectedDate);
+        const scheduleDateTime = new Date(selectedDate);
+        
+        // 设置预约时间
+        const [startHours, startMinutes] = startTime.split(':').map(Number);
+        scheduleDateTime.setHours(startHours, startMinutes, 0);
+        
+        // 如果是今天，需要比较完整的时间（时和分）
+        if (selectedDate.toDateString() === now.toDateString()) {
+            // 获取当前的小时和分钟
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            
+            // 将时间转换为分钟数进行比较
+            const currentTotalMinutes = currentHours * 60 + currentMinutes;
+            const scheduleTotalMinutes = startHours * 60 + startMinutes;
+            
+            if (scheduleTotalMinutes <= currentTotalMinutes) {
+                this.showNotification('无法预约过去或当前的时间');
+                return;
+            }
+        }
+        
+        // 修复日期时区问题
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+        
+        const course = {
+            id: Date.now(),
+            date: dateString,
+            startTime: startTime,
+            endTime: endTime,
+            location: document.getElementById('scheduleLocation').value,
+            courseName: document.getElementById('studentName').value,
+            duration: 1,
+            remarks: document.getElementById('scheduleRemarks').value,
+            isScheduled: true
+        };
+        
+        this.courses.push(course);
+        this.saveCourses();
+        
+        // 更新所有相关显示
+        this.renderCalendar();
+        this.updateScheduleDisplay();
+        this.renderCourses();
+        this.updateLocationStats();
+        this.updateTotalHours();
+        this.initializeMonthSelector();
+        
+        this.closeScheduleModal();
+        this.showNotification('预约添加成功！');
     }
 }
 

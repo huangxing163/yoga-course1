@@ -19,6 +19,10 @@
                 <i class="fas fa-list"></i>
                 <span>课程记录</span>
             </div>
+            <div class="tab-item" data-tab="schedule">
+                <i class="fas fa-calendar-alt"></i>
+                <span>课表</span>
+            </div>
         </nav>
 
         <div class="page-container">
@@ -93,6 +97,33 @@
                     <!-- 课程记录将显示在这里 -->
                 </div>
             </div>
+
+            <!-- 课表页面 -->
+            <div class="page" id="schedule-page">
+                <div class="page-header">
+                    <h1>课表</h1>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                        <h2 id="currentMonth"></h2>
+                        <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>日</div><div>一</div><div>二</div><div>三</div>
+                        <div>四</div><div>五</div><div>六</div>
+                    </div>
+                    <div id="calendarDays" class="calendar-days"></div>
+                </div>
+                <div id="daySchedule" class="day-schedule">
+                    <h3 class="schedule-date"></h3>
+                    <div class="schedule-list"></div>
+                    <button class="btn-add-schedule" id="btnAddSchedule">
+                        <i class="fas fa-plus"></i>
+                        <span>添加预约</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
@@ -106,6 +137,36 @@
                 <button class="btn-cancel" onclick="yogaManager.closeModal()">取消</button>
                 <button class="btn-confirm" onclick="yogaManager.confirmDelete()">确认删除</button>
             </div>
+        </div>
+    </div>
+    <!-- 添加预约课程的弹窗 -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <h2>添加预约</h2>
+            <form id="scheduleForm">
+                <div class="form-group">
+                    <input type="text" id="studentName" required>
+                    <label for="studentName">课程名称</label>
+                </div>
+                <div class="form-group time-range">
+                    <input type="time" id="scheduleStartTime" required>
+                    <span class="time-separator">至</span>
+                    <input type="time" id="scheduleEndTime" required>
+                    <label for="scheduleStartTime">预约时间</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="scheduleLocation" required>
+                    <label for="scheduleLocation">上课地点</label>
+                </div>
+                <div class="form-group">
+                    <textarea id="scheduleRemarks" rows="3"></textarea>
+                    <label for="scheduleRemarks">备注信息</label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="yogaManager.closeScheduleModal()">取消</button>
+                    <button type="submit" class="btn-confirm">确认预约</button>
+                </div>
+            </form>
         </div>
     </div>
 </body>
