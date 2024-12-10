@@ -857,7 +857,7 @@ class YogaCourseManager {
         
         // 检查是否是过去的日期
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // 设置时间为当天开始
+        today.setHours(0, 0, 0, 0); // 设置时间为当天始
         
         const selectedDate = new Date(this.selectedDate);
         selectedDate.setHours(0, 0, 0, 0);
@@ -939,6 +939,149 @@ class YogaCourseManager {
         
         this.closeScheduleModal();
         this.showNotification('预约添加成功！');
+    }
+
+    // 显示批量添加模态框
+    showBatchAddModal() {
+        const modal = document.getElementById('batchAddModal');
+        modal.style.display = 'flex';
+        
+        // 设置默认的开始月份为当前月份
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        document.getElementById('startMonth').value = `${year}-${month}`;
+    }
+
+    // 关闭批量添加模态框
+    closeBatchAddModal() {
+        const modal = document.getElementById('batchAddModal');
+        modal.style.display = 'none';
+        
+        // 清空输入
+        document.getElementById('batchCourses').value = '';
+        document.getElementById('repeatMonths').value = '1';
+    }
+
+    // 处理批量添加逻辑
+    processBatchAdd() {
+        const coursesText = document.getElementById('batchCourses').value.trim();
+        const startMonth = document.getElementById('startMonth').value;
+        const repeatMonths = parseInt(document.getElementById('repeatMonths').value);
+
+        if (!coursesText || !startMonth) {
+            Swal.fire('错误', '请填写课程信息和开始月份', 'error');
+            return;
+        }
+
+        try {
+            // 解析课程数据
+            const courseLines = coursesText.split('\n').filter(line => line.trim());
+            const weekdayMap = {
+                '周日': 0, '周一': 1, '周二': 2, '周三': 3,
+                '周四': 4, '周五': 5, '周六': 6
+            };
+
+            // 获取开始月份的第一天
+            const startDate = new Date(`${startMonth}-01`);
+            const courses = [];
+
+            // 获取明天凌晨的日期时间
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            // 获取今天的日期（用于比较）
+            const today = new Date();
+            today.setHours(23, 59, 59, 999); // 设置为今天的最后一毫秒
+
+            // 循环处理每个月
+            for (let month = 0; month < repeatMonths; month++) {
+                const currentMonth = new Date(startDate);
+                currentMonth.setMonth(currentMonth.getMonth() + month);
+                
+                // 处理每行课程信息
+                courseLines.forEach(line => {
+                    const parts = line.split('-');
+                    if (parts.length < 6) {
+                        throw new Error(`格式错误: ${line}\n正确格式：星期几-开始时间-结束时间-地点-课程名称-课时`);
+                    }
+
+                    const [weekday, startTime, endTime, location, courseName, duration] = parts;
+                    const weekdayNum = weekdayMap[weekday];
+
+                    if (weekdayNum === undefined) {
+                        throw new Error(`无效的星期格式: ${weekday}`);
+                    }
+
+                    // 验证课时是否为数字
+                    const durationNum = parseInt(duration);
+                    if (isNaN(durationNum)) {
+                        throw new Error(`无效的课时格式: ${duration}`);
+                    }
+
+                    // 找到当月第一个对应的星期几
+                    const firstDay = new Date(monthStartDate);
+                    while (firstDay.getDay() !== weekdayNum) {
+                        firstDay.setDate(firstDay.getDate() + 1);
+                    }
+
+                    // 如果第一天不晚于今天，找到下一个符合条件的日期
+                    while (firstDay.getTime() <= today.getTime()) {
+                        firstDay.setDate(firstDay.getDate() + 7);
+                    }
+
+                    const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59);
+                    let currentDate = new Date(firstDay);
+
+                    // 只有当起始日期不超过月末时才进行处理
+                    if (currentDate.getMonth() === currentMonth.getMonth()) {
+                        do {
+                            // 确保日期晚于今天
+                            if (currentDate.getTime() > today.getTime()) {
+                                const courseDate = currentDate.toISOString().split('T')[0];
+                                
+                                courses.push({
+                                    id: Date.now() + Math.random(),
+                                    date: courseDate,
+                                    startTime,
+                                    endTime,
+                                    location,
+                                    courseName,
+                                    duration: durationNum,
+                                    remarks: ''
+                                });
+                            }
+
+                            // 增加7天
+                            currentDate.setDate(currentDate.getDate() + 7);
+                        } while (currentDate.getTime() <= lastDay.getTime() && 
+                                currentDate.getMonth() === currentMonth.getMonth());
+                    }
+                });
+            }
+
+            // 保存课程到本地存储
+            const existingCourses = JSON.parse(localStorage.getItem('yogaCourses')) || [];
+            const updatedCourses = [...existingCourses, ...courses];
+            localStorage.setItem('yogaCourses', JSON.stringify(updatedCourses));
+
+            // 更新当前实例的课程数据
+            this.courses = updatedCourses;
+
+            // 关闭模态框并显示成功消息
+            this.closeBatchAddModal();
+            Swal.fire('成功', `已添加 ${courses.length} 节课程`, 'success');
+            
+            // 更新显示
+            this.renderCourses();
+            this.updateTotalHours();
+            this.updateLocationStats();
+            this.initializeMonthSelector();
+
+        } catch (error) {
+            Swal.fire('错误', error.message, 'error');
+        }
     }
 }
 

@@ -19,10 +19,7 @@
                 <i class="fas fa-list"></i>
                 <span>课程记录</span>
             </div>
-            <div class="tab-item" data-tab="schedule">
-                <i class="fas fa-calendar-alt"></i>
-                <span>课表</span>
-            </div>
+          
         </nav>
 
         <div class="page-container">
@@ -66,6 +63,9 @@
                     <h1>课程记录</h1>
                     <div class="header-actions">
                         <div class="total-hours">总课时：<span id="totalHours">0</span></div>
+                        <button class="btn-batch-add" onclick="yogaManager.showBatchAddModal()">
+                            <i class="fas fa-calendar-plus"></i>
+                        </button>
                         <input type="file" id="importFile" accept=".csv" style="display: none;">
                         <button class="btn-import" onclick="document.getElementById('importFile').click()">
                             <i class="fas fa-upload"></i>
@@ -167,6 +167,32 @@
                     <button type="submit" class="btn-confirm">确认预约</button>
                 </div>
             </form>
+        </div>
+    </div>
+    <!-- 在 body 末尾添加批量添加课程的模态框 -->
+    <div id="batchAddModal" class="modal">
+        <div class="modal-content">
+            <h2>批量添加课程</h2>
+            <p class="modal-description">请按照以下格式输入课程信息：</p>
+            <p class="format-example">格式：星期几-开始时间-结束时间-地点-课程名称-课时</p>
+            <p class="format-example">示例：周一-14:00-15:00-月苑老年大学-瑜伽-1</p>
+            <p class="format-tip">每行一条记录</p>
+            <div class="form-group">
+                <textarea id="batchCourses" rows="6" placeholder="周一-14:00-15:00-月苑老年大学-瑜伽-1
+周二-09:00-10:00-文化馆-瑜伽-1"></textarea>
+            </div>
+            <div class="form-group">
+                <label>开始月份：</label>
+                <input type="month" id="startMonth" required>
+            </div>
+            <div class="form-group">
+                <label>重复月数：</label>
+                <input type="number" id="repeatMonths" value="1" min="1" max="12">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="yogaManager.closeBatchAddModal()">取消</button>
+                <button type="button" class="btn-confirm" onclick="yogaManager.processBatchAdd()">确认添加</button>
+            </div>
         </div>
     </div>
 </body>
