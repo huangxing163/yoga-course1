@@ -1017,7 +1017,7 @@ class YogaCourseManager {
                     // 验证课时是否为数字
                     const durationNum = parseInt(duration);
                     if (isNaN(durationNum)) {
-                        throw new Error(`无效的课时格式: ${duration}`);
+                        throw new Error(`无效的课时格式: ${duration}`);  
                     }
 
                     // 找到当月第一个对应的星期几，使用 currentMonth 替代 monthStartDate
