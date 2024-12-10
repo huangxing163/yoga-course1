@@ -389,7 +389,7 @@ class YogaCourseManager {
         const locationCard = document.getElementById(locationId).previousElementSibling;
         const location = locationCard.querySelector('.location-name').textContent;
         
-        // 获取选中的月份
+        // 获取选��的月份
         const selectedMonth = this.monthSelector.value;
         const [year, month] = selectedMonth.split('-').map(Number);
         
@@ -1020,8 +1020,8 @@ class YogaCourseManager {
                         throw new Error(`无效的课时格式: ${duration}`);
                     }
 
-                    // 找到当月第一个对应的星期几
-                    const firstDay = new Date(monthStartDate);
+                    // 找到当月第一个对应的星期几，使用 currentMonth 替代 monthStartDate
+                    const firstDay = new Date(currentMonth);
                     while (firstDay.getDay() !== weekdayNum) {
                         firstDay.setDate(firstDay.getDate() + 1);
                     }
